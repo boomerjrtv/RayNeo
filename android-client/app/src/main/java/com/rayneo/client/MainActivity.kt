@@ -13,12 +13,11 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.webrtc.EglBase
-import org.webrtc.SurfaceViewRenderer
 import org.webrtc.VideoTrack
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var videoView: SurfaceViewRenderer
+    private lateinit var xrView: XRVideoView
     private lateinit var statusText: TextView
     private lateinit var eglBase: EglBase
 
@@ -33,12 +32,9 @@ class MainActivity : AppCompatActivity() {
 
         eglBase = EglBase.create()
 
-        // Full-screen video surface — this is what the glasses display
-        videoView = SurfaceViewRenderer(this).apply {
-            init(eglBase.eglBaseContext, null)
-            setScalingType(org.webrtc.RendererCommon.ScalingType.SCALE_ASPECT_FIT)
-            setEnableHardwareScaler(true)
-        }
+        // Full-screen 3DOF XR view — renders the WebRTC stream on a virtual cinema screen
+        // pinned in world space, driven by IMU head tracking.
+        xrView = XRVideoView(this)
 
         statusText = TextView(this).apply {
             setTextColor(Color.WHITE)
@@ -50,7 +46,7 @@ class MainActivity : AppCompatActivity() {
 
         val root = FrameLayout(this).apply {
             setBackgroundColor(Color.BLACK)
-            addView(videoView, FrameLayout.LayoutParams(
+            addView(xrView, FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
             ))
@@ -96,10 +92,13 @@ class MainActivity : AppCompatActivity() {
             context = this,
             onStatus = { msg -> runOnUiThread { statusText.text = msg } },
             onOrientation = { quaternion ->
-                // Auto-recenter yaw on first stable pose
+                // Auto-recenter the virtual screen to face-forward on the first stable pose
                 if (shouldAutoRecenter && SystemClock.elapsedRealtime() >= autoRecenterAfterMs) {
+                    xrView.recenter()
                     shouldAutoRecenter = false
                 }
+                // Drive the 3DOF head-locked renderer
+                xrView.updateHeadPose(quaternion)
                 // Forward pose to server for reprojection / window positioning
                 streamClient.sendPose(quaternion)
             }
@@ -110,7 +109,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         shouldAutoRecenter = true
         autoRecenterAfterMs = SystemClock.elapsedRealtime() + AUTO_RECENTER_DELAY_MS
-        videoView.onResume()
+        xrView.resume()
         streamClient.start()
         rayNeoSession.start()
     }
@@ -118,19 +117,18 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         rayNeoSession.stop()
         streamClient.stop()
-        videoView.onPause()
+        xrView.release()
         super.onPause()
     }
 
     override fun onDestroy() {
-        videoView.release()
         eglBase.release()
         super.onDestroy()
     }
 
     private fun attachVideoTrack(track: VideoTrack) {
-        track.addSink(videoView)
-        statusText.visibility = View.GONE
+        xrView.attachVideoTrack(track, eglBase)
+        runOnUiThread { statusText.visibility = View.GONE }
     }
 
     companion object {

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Matches RayNeo Air series glasses VID/PID so Android auto-prompts on plug-in -->
+<resources>
+    <usb-device vendor-id="7099" product-id="44880" />
+    <!-- vendor-id="0x1BBB"=7099, product-id="0xAF50"=44880 (decimal) -->
+</resources>

@@ -1,0 +1,34 @@
+[Unit]
+Description=RayNeo XR Streaming Server
+Documentation=https://github.com/your/rayneo
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=michael
+Group=michael
+WorkingDirectory=/home/michael/RayNeo
+
+# Release binary — run `cargo build --release` before enabling
+ExecStart=/home/michael/RayNeo/target/release/rayneo-streamer
+
+# Restart automatically on crash, wait 3s between attempts
+Restart=always
+RestartSec=3
+
+# Logging
+Environment=RUST_LOG=info
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=rayneo
+
+# Allow access to GPU devices for VAAPI (when enabled)
+DeviceAllow=/dev/dri/card0 rw
+DeviceAllow=/dev/dri/renderD128 rw
+
+# Keep process alive even when SSH session ends
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target

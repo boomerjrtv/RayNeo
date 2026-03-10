@@ -1,0 +1,17 @@
+[package]
+name = "rayneo-streamer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+anyhow = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+rayneo-server = { path = "../rayneo-server" }
+rayneo-xr-runtime = { path = "../rayneo-xr-runtime" }
+
+bytes = "1"

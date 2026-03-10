@@ -1,0 +1,22 @@
+[package]
+name = "rayneo-xr-runtime"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+anyhow = "1"
+serde = { version = "1", features = ["derive"] }
+tracing = "0.1"
+
+# OpenXR bindings — optional until Monado is installed on the server
+openxr = { version = "0.19", features = ["static"], optional = true }
+
+# Byte buffers
+bytes = "1"
+
+# Math
+glam = "0.29"
+
+[features]
+openxr = ["dep:openxr"]

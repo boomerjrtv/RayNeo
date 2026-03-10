@@ -1,0 +1,19 @@
+# Rust build artifacts
+target/
+
+# Android build artifacts
+android-client/.gradle/
+android-client/build/
+android-client/app/build/
+android-client/local.properties
+*.apk
+*.aab
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
